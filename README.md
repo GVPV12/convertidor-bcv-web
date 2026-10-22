@@ -1,5 +1,7 @@
 # 💱 Convertidor BCV (web)
 
+**Español** | [English](README.en.md)
+
 Versión web del [Convertidor de Moneda](https://github.com/GVPV12/usdtoves) original en Python/Kivy.
 Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y viceversa con la tasa oficial del **Banco Central de Venezuela**.
 
@@ -21,9 +23,9 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 ## Uso
 
 No necesita instalación ni compilación: abre `index.html` en el navegador.
+También se puede publicar tal cual con **GitHub Pages** (Settings → Pages → rama `main`, carpeta `/ (root)`).
 
 > 🔖 **Tip:** guárdala en tus marcadores (o en la pantalla de inicio de tu teléfono) y ábrela cada vez que necesites convertir. Funciona igual de bien en cualquier dispositivo.
-También se puede publicar tal cual con **GitHub Pages** (Settings → Pages → rama `main`, carpeta `/ (root)`).
 
 ## Tecnología
 
