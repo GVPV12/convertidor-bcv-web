@@ -78,6 +78,7 @@ const I18N = {
     'footer.source': 'Tasa oficial del BCV vía',
     'footer.ref': 'Valores referenciales',
     'footer.madeBy': 'Hecho por',
+    'footer.desktop': 'Prueba la app de escritorio',
 
     'settings.open': 'Opciones',
     'settings.title': 'Opciones',
@@ -177,6 +178,7 @@ const I18N = {
     'footer.source': 'Official BCV rate via',
     'footer.ref': 'Reference values',
     'footer.madeBy': 'Made by',
+    'footer.desktop': 'Try the desktop app',
 
     'settings.open': 'Settings',
     'settings.title': 'Settings',

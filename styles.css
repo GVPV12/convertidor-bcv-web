@@ -106,6 +106,12 @@ button { cursor: pointer; }
 }
 
 .site-footer { padding: 2rem 0 1.25rem; }
+/* Separador "·" idéntico entre todos los elementos del pie */
+.footer-item + .footer-item::before {
+  content: "·";
+  margin: 0 .55rem;
+  color: var(--faint);
+}
 
 /* ---------- Escena de fondo ---------- */
 
@@ -1064,6 +1070,10 @@ button { cursor: pointer; }
   width: 300px;
   padding: 1rem;
   border-radius: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-line) / .3) transparent;
   background: linear-gradient(180deg, rgb(var(--c-surface) / .2), rgb(var(--c-deep) / .94));
   opacity: 0;
   transform: translateY(-6px) scale(.98);
@@ -1071,6 +1081,10 @@ button { cursor: pointer; }
   transition: opacity .2s var(--ease-out), transform .25s var(--ease-out);
 }
 .settings-panel.is-open { opacity: 1; transform: none; }
+/* Con scroll interno, el borde degradado (pseudo-elemento) se desplazaría con el contenido:
+   aquí se usa un borde normal. */
+.settings-panel::before { display: none; }
+.settings-panel { border: 1px solid rgb(var(--c-line) / .22); }
 @media (max-width: 639px) {
   .settings-panel { left: 1rem; right: 1rem !important; width: auto; }
 }

@@ -515,7 +515,7 @@ function closeCurrencyMenu({ restoreFocus = false } = {}) {
 
 /* ---------------- Conversor ---------------- */
 
-const CHIP_VALUES = { 'fx-ves': [1, 10, 50, 100], 'ves-fx': [100, 1000, 5000, 10000] };
+const CHIP_VALUES = { 'fx-ves': [1, 10, 15, 30, 50, 100], 'ves-fx': [100, 1000, 5000, 10000] };
 
 function formatResult(value) {
   return state.mode === 'fx-ves' ? `Bs ${fmt2.format(value)}` : `${cfg().symbol} ${fmt2.format(value)}`;
@@ -606,10 +606,14 @@ async function copyResult() {
 
 /* ---------------- Frase del día ---------------- */
 
+// Una frase aleatoria en cada visita, distinta a la de la visita anterior.
+const LAST_QUOTE_KEY = 'bcv-last-quote';
 let quoteIndex = (() => {
-  const now = new Date();
-  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
-  return dayOfYear % QUOTES.length;
+  const last = readStorage(LAST_QUOTE_KEY);
+  let i;
+  do { i = Math.floor(Math.random() * QUOTES.length); } while (i === last && QUOTES.length > 1);
+  writeStorage(LAST_QUOTE_KEY, i);
+  return i;
 })();
 
 function renderQuote() {
@@ -760,6 +764,8 @@ function positionSettings() {
   const r = el.settingsBtn.getBoundingClientRect();
   el.settingsPanel.style.top = `${r.bottom + 10}px`;
   el.settingsPanel.style.right = `${Math.max(16, window.innerWidth - r.right)}px`;
+  // Si no cabe en la pantalla, el panel se desplaza por dentro.
+  el.settingsPanel.style.maxHeight = `${Math.max(200, window.innerHeight - r.bottom - 26)}px`;
 }
 
 function openSettings() {

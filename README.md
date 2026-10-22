@@ -8,7 +8,7 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 - 🔄 Conversión USD/EUR → Bs y Bs → USD/EUR, en vivo mientras escribes
 - 📊 Tasa BCV de hoy con gráfica histórica (7, 30 y 90 días) y variación porcentual
 - 💶 Botón para cambiar entre dólar y euro
-- 💬 Frase motivacional del día (36 frases, en español e inglés)
+- 💬 Una frase de esperanza y motivación distinta en cada visita (38 frases, en español e inglés)
 - 🌐 Idioma español / inglés
 - 🎨 3 skins: **Fluido**, **Holograma** y **Esmeralda**, con opción de rotarlas automáticamente o elegir una al azar al iniciar
 - 👁️ Vista simple: solo el precio, sin gráfica ni porcentaje
@@ -16,11 +16,13 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 - 🌍 Opción para mostrar las demás monedas oficiales del BCV: **yuan, lira turca y rublo**
 - 💾 Todas las opciones se recuerdan al volver a la página
 - 📴 Si no hay conexión, muestra la última tasa guardada
-- 📱 Diseño responsivo (móvil, tablet y laptop)
+- 📱 100% responsivo: se adapta a cualquier dispositivo (teléfono, tablet, laptop y monitores grandes)
 
 ## Uso
 
 No necesita instalación ni compilación: abre `index.html` en el navegador.
+
+> 🔖 **Tip:** guárdala en tus marcadores (o en la pantalla de inicio de tu teléfono) y ábrela cada vez que necesites convertir. Funciona igual de bien en cualquier dispositivo.
 También se puede publicar tal cual con **GitHub Pages** (Settings → Pages → rama `main`, carpeta `/ (root)`).
 
 ## Tecnología
