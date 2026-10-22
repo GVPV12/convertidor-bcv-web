@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es" data-skin="fluid">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Convertidor BCV</title>
+  <meta name="description" content="Convierte dólares y euros a bolívares (y viceversa) con la tasa oficial del BCV actualizada.">
+  <meta name="theme-color" content="#04101f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23c4fff3'/%3E%3Cstop offset='1' stop-color='%2319c6e0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%2304101f'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='url(%23g)' stroke-width='2.2'/%3E%3Cpath d='M16 9.5v13M19.2 12.4h-4.4a2.1 2.1 0 0 0 0 4.2h2.4a2.1 2.1 0 0 1 0 4.2h-4.6' fill='none' stroke='url(%23g)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Aplica skin e idioma guardados antes de pintar, para evitar un parpadeo de colores. -->
+  <script>
+    try {
+      const skins = ['fluid', 'hologram', 'emerald'];
+      const s = JSON.parse(localStorage.getItem('bcv-settings') || '{}');
+      // "Skin aleatoria al iniciar": elige una distinta a la última y la guarda para app.js.
+      if (s.randomSkin) {
+        const pool = skins.filter((k) => k !== s.skin);
+        s.skin = pool[Math.floor(Math.random() * pool.length)];
+        localStorage.setItem('bcv-settings', JSON.stringify(s));
+      }
+      if (skins.includes(s.skin)) document.documentElement.dataset.skin = s.skin;
+      if (s.simple) document.documentElement.dataset.simple = 'true';
+      if (s.lang === 'en') document.documentElement.lang = 'en';
+    } catch (e) {}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://ve.dolarapi.com" crossorigin>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+      --font-display: "Sora", "Inter", ui-sans-serif, sans-serif;
+      --color-muted: var(--muted);
+      --color-faint: var(--faint);
+    }
+  </style>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-sans">
+
+  <!-- Escena de fondo -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="facets"></div>
+    <div class="blob blob--1"></div>
+    <div class="blob blob--2"></div>
+    <div class="blob blob--3"></div>
+    <div class="stars"></div>
+    <div class="grid-overlay"></div>
+    <div class="streak streak--1"></div>
+    <div class="streak streak--2"></div>
+    <div class="horizon"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- Pantalla de carga -->
+  <div id="splash" class="splash" role="status" aria-live="polite">
+    <div class="glass splash-card">
+      <div class="flex items-center gap-4">
+        <div class="doc-icon" aria-hidden="true">
+          <span class="doc-icon__tag">BCV</span>
+        </div>
+        <div class="min-w-0">
+          <p class="font-display text-lg font-semibold tracking-tight" data-i18n="splash.title">Tasa oficial</p>
+          <p class="text-sm text-muted mt-0.5" data-i18n="splash.subtitle">Banco Central de Venezuela</p>
+        </div>
+      </div>
+      <div class="progress-panel mt-5">
+        <div class="flex items-center justify-between text-sm">
+          <span class="flex items-center gap-2.5">
+            <span class="spinner" aria-hidden="true"></span>
+            <span id="splash-label" data-i18n="splash.syncing">Sincronizando…</span>
+          </span>
+          <span id="splash-pct" class="font-display tabular-nums text-muted">0%</span>
+        </div>
+        <div class="progress mt-3"><div id="splash-bar" class="progress__bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page mx-auto flex min-h-dvh w-full max-w-6xl flex-col">
+
+    <header class="site-header flex items-center justify-between gap-3 reveal">
+      <a href="./" class="flex min-w-0 items-center gap-2.5">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" class="stop-a"/><stop offset="1" class="stop-b"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="10" fill="none" stroke="url(#logoGrad)" stroke-width="2.2"/>
+          <path d="M16 9.5v13M19.2 12.4h-4.4a2.1 2.1 0 0 0 0 4.2h2.4a2.1 2.1 0 0 1 0 4.2h-4.6" fill="none" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="min-w-0">
+          <p class="font-display text-sm font-semibold leading-tight tracking-tight" data-i18n="header.title">Convertidor</p>
+          <p class="truncate text-xs text-muted" id="header-sub">USD ⇄ VES · Tasa BCV</p>
+        </div>
+      </a>
+      <div class="flex shrink-0 items-center gap-2">
+        <button type="button" id="currency-btn" class="currency-btn" data-target="EUR" aria-label="Cambiar a euro">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+          <span><span class="hidden sm:inline" data-i18n="currency.switchTo">Cambiar a </span><span id="currency-btn-label">EURO</span></span>
+        </button>
+        <div class="pill" id="status">
+          <span class="status-dot" id="status-dot" data-state="loading"></span>
+          <span id="status-text" class="hidden sm:inline">Conectando…</span>
+        </div>
+        <button type="button" id="settings-btn" class="icon-btn settings-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel" data-i18n-aria="settings.open" aria-label="Opciones">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="grid min-w-0 grid-cols-1 gap-y-5 lg:grid-cols-12 lg:gap-x-4 lg:gap-y-6">
+
+      <!-- Tasa BCV de hoy -->
+      <section class="glass glass--glow hero flex min-w-0 flex-col lg:col-span-7 reveal" style="--d:.08s" aria-labelledby="rate-title">
+        <div class="hero__beam" aria-hidden="true"></div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 sm:px-6 sm:pt-5">
+          <p id="updated" class="min-w-0 text-xs text-muted">Obteniendo tasa…</p>
+          <div class="flex items-center gap-2">
+            <div class="range" id="range" role="group" data-i18n-aria="rate.range" aria-label="Periodo del gráfico">
+              <button type="button" data-range="7" aria-pressed="false">7D</button>
+              <button type="button" data-range="30" aria-pressed="true">30D</button>
+              <button type="button" data-range="90" aria-pressed="false">90D</button>
+            </div>
+            <button type="button" id="refresh-btn" class="icon-btn" data-i18n-aria="rate.refresh" aria-label="Actualizar tasa">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="chart-box flex-1" id="chart-box">
+          <svg id="chart" class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" class="stop-line-a"/>
+                <stop offset=".45" class="stop-line-b"/>
+                <stop offset="1" class="stop-line-c"/>
+              </linearGradient>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" class="stop-area-a"/>
+                <stop offset="1" class="stop-area-b"/>
+              </linearGradient>
+            </defs>
+            <path id="chart-area" fill="url(#areaGrad)"/>
+            <path id="chart-glow" class="chart-glow" fill="none" stroke="url(#lineGrad)" stroke-width="10" vector-effect="non-scaling-stroke"/>
+            <path id="chart-line" fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <span class="chart-guide" id="chart-guide" hidden></span>
+          <span class="chart-dot" id="chart-dot" hidden></span>
+          <span class="chart-dot chart-dot--hover" id="chart-hover" hidden></span>
+          <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+          <p class="chart-empty" id="chart-empty" hidden data-i18n="rate.historyEmpty">Histórico no disponible</p>
+        </div>
+
+        <div class="hero__body relative px-4 pb-5 text-center sm:px-6 sm:pb-6">
+          <h2 id="rate-title" class="text-sm text-muted" data-i18n="rate.title">Tasa BCV de hoy</h2>
+          <p class="rate-value">
+            <span id="rate-value">—</span><span class="rate-unit">Bs</span>
+          </p>
+          <p class="mt-0.5 text-xs text-muted text-balance">
+            <span id="rate-per">por 1 USD</span><span id="rate-change" class="change"></span>
+          </p>
+        </div>
+      </section>
+
+      <!-- Conversor -->
+      <section class="glass converter flex min-w-0 flex-col p-4 sm:p-6 lg:col-span-5 reveal" style="--d:.16s" aria-labelledby="conv-title">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="conv-title" class="font-display text-base font-semibold tracking-tight" data-i18n="conv.title">Convertir</h2>
+          <button type="button" id="swap-btn" class="icon-btn" data-i18n-aria="conv.swap" aria-label="Invertir conversión">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>
+          </button>
+        </div>
+
+        <div class="segmented mt-3" id="mode" data-mode="fx-ves" role="group" data-i18n-aria="conv.direction" aria-label="Dirección de la conversión">
+          <span class="segmented__thumb" aria-hidden="true"></span>
+          <button type="button" id="mode-fx" data-mode="fx-ves" aria-pressed="true">USD → Bs</button>
+          <button type="button" id="mode-ves" data-mode="ves-fx" aria-pressed="false">Bs → USD</button>
+        </div>
+
+        <form id="conv-form" class="mt-4 min-w-0" novalidate>
+          <label for="amount" id="amount-label" class="text-xs text-muted">Monto en dólares</label>
+          <div class="field mt-1.5" id="field">
+            <span class="field__prefix" id="prefix">USD</span>
+            <input id="amount" name="amount" type="text" size="1" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="0,00" aria-describedby="error">
+            <svg class="sparkle" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2c.4 4.6 2.4 6.6 7 7-4.6.4-6.6 2.4-7 7-.4-4.6-2.4-6.6-7-7 4.6-.4 6.6-2.4 7-7Z"/>
+              <path class="sparkle__small" d="M19 15c.2 1.8.9 2.5 2.7 2.7-1.8.2-2.5.9-2.7 2.7-.2-1.8-.9-2.5-2.7-2.7 1.8-.2 2.5-.9 2.7-2.7Z"/>
+            </svg>
+          </div>
+          <div class="chips mt-2" id="chips" data-i18n-aria="conv.chips" aria-label="Montos rápidos"></div>
+          <p id="error" class="error" role="alert"></p>
+
+          <button type="submit" class="magic">
+            <span class="magic__inner" aria-hidden="true"></span>
+            <span class="magic__label" data-i18n="conv.submit">Convertir</span>
+          </button>
+        </form>
+
+        <div class="result mt-4" aria-live="polite">
+          <p class="text-xs text-muted" id="result-label">Equivalente en bolívares</p>
+          <div class="mt-0.5 flex items-center justify-between gap-3">
+            <p class="result-value" id="result">Bs 0,00</p>
+            <button type="button" id="copy-btn" class="icon-btn" data-i18n-aria="conv.copy" aria-label="Copiar resultado">
+              <svg class="icon-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h7"/></svg>
+              <svg class="icon-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </button>
+          </div>
+          <p class="mt-1 text-[11px] text-faint" id="result-meta">Esperando la tasa BCV…</p>
+        </div>
+      </section>
+
+      <!-- Frase del día -->
+      <section class="glass quote min-w-0 px-4 py-3.5 sm:px-6 lg:col-span-12 reveal" style="--d:.24s" data-i18n-aria="quote.section" aria-label="Frase del día">
+        <div class="flex items-center gap-3.5 sm:gap-5">
+          <span class="quote-mark" aria-hidden="true">“</span>
+          <figure class="min-w-0 flex-1">
+            <blockquote id="quote-text" class="quote-text" data-i18n="quote.loading">Cargando frase motivacional…</blockquote>
+            <figcaption id="quote-author" class="mt-0.5 text-[11px] text-muted"></figcaption>
+          </figure>
+          <button type="button" id="quote-btn" class="ghost-btn" data-i18n-aria="quote.anotherAria" aria-label="Mostrar otra frase">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.3 3.8 2.2 5.7 6 6-3.8.3-5.7 2.2-6 6-.3-3.8-2.2-5.7-6-6 3.8-.3 5.7-2.2 6-6Z"/></svg>
+            <span class="hidden sm:inline" data-i18n="quote.another">Otra frase</span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer mt-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[11px] text-faint reveal" style="--d:.32s">
+      <span><span data-i18n="footer.source">Tasa oficial del BCV vía</span> <a href="https://dolarapi.com/docs/venezuela/" target="_blank" rel="noopener">DolarApi</a> · <span data-i18n="footer.ref">Valores referenciales</span></span>
+      <span><span data-i18n="footer.madeBy">Hecho por</span> <a href="https://github.com/GVPV12/usdtoves" target="_blank" rel="noopener">GVPV12</a></span>
+    </footer>
+  </div>
+
+  <!-- Panel de opciones -->
+  <div class="glass settings-panel" id="settings-panel" role="dialog" aria-labelledby="settings-title" hidden>
+    <div class="flex items-center justify-between gap-3">
+      <p id="settings-title" class="font-display text-sm font-semibold tracking-tight" data-i18n="settings.title">Opciones</p>
+      <button type="button" id="settings-close" class="icon-btn icon-btn--sm" data-i18n-aria="settings.close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <p class="settings-label" data-i18n="settings.language">Idioma</p>
+    <div class="lang-toggle" id="lang-toggle" role="radiogroup" data-i18n-aria="settings.language" aria-label="Idioma">
+      <button type="button" role="radio" data-lang="es" aria-checked="true">Español</button>
+      <button type="button" role="radio" data-lang="en" aria-checked="false">English</button>
+    </div>
+
+    <p class="settings-label" data-i18n="settings.skin">Skin</p>
+    <div class="skin-grid" id="skin-grid" role="radiogroup" data-i18n-aria="settings.skin" aria-label="Skin">
+      <button type="button" role="radio" class="skin-opt" data-skin="fluid" aria-checked="true">
+        <span class="skin-swatch skin-swatch--fluid" aria-hidden="true"></span>
+        <span data-i18n="skin.fluid">Fluido</span>
+      </button>
+      <button type="button" role="radio" class="skin-opt" data-skin="hologram" aria-checked="false">
+        <span class="skin-swatch skin-swatch--hologram" aria-hidden="true"></span>
+        <span data-i18n="skin.hologram">Holograma</span>
+      </button>
+      <button type="button" role="radio" class="skin-opt" data-skin="emerald" aria-checked="false">
+        <span class="skin-swatch skin-swatch--emerald" aria-hidden="true"></span>
+        <span data-i18n="skin.emerald">Esmeralda</span>
+      </button>
+    </div>
+
+    <label class="switch-row" for="auto-skin">
+      <span class="min-w-0">
+        <span class="block text-[13px]" data-i18n="settings.auto">Cambiar skin automáticamente</span>
+        <span class="mt-0.5 block text-[11px] text-muted" data-i18n="settings.autoHint">Rota entre las skins cada 30 segundos</span>
+      </span>
+      <input type="checkbox" id="auto-skin" class="switch" role="switch">
+    </label>
+
+    <label class="switch-row" for="random-skin">
+      <span class="min-w-0">
+        <span class="block text-[13px]" data-i18n="settings.random">Skin aleatoria al iniciar</span>
+        <span class="mt-0.5 block text-[11px] text-muted" data-i18n="settings.randomHint">Elige una skin distinta cada vez que abres la página</span>
+      </span>
+      <input type="checkbox" id="random-skin" class="switch" role="switch">
+    </label>
+
+    <label class="switch-row" for="simple-view">
+      <span class="min-w-0">
+        <span class="block text-[13px]" data-i18n="settings.simple">Mostrar solo el precio</span>
+        <span class="mt-0.5 block text-[11px] text-muted" data-i18n="settings.simpleHint">Oculta la gráfica y el porcentaje de variación</span>
+      </span>
+      <input type="checkbox" id="simple-view" class="switch" role="switch">
+    </label>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="i18n.js"></script>
+  <script src="quotes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
