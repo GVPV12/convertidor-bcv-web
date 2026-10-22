@@ -643,6 +643,7 @@ function applyStaticTexts() {
   document.querySelector('meta[name="description"]').content = t('doc.description');
   for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
   for (const node of document.querySelectorAll('[data-i18n-aria]')) node.setAttribute('aria-label', t(node.dataset.i18nAria));
+  for (const node of document.querySelectorAll('[data-i18n-title]')) node.title = t(node.dataset.i18nTitle);
 }
 
 function setLanguage(lang) {

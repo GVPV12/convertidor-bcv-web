@@ -79,6 +79,8 @@ const I18N = {
     'footer.ref': 'Valores referenciales',
     'footer.madeBy': 'Hecho por',
     'footer.desktop': 'Prueba la app de escritorio',
+    'footer.repo': 'Ver el código en GitHub',
+    'footer.projects': 'Todos mis proyectos',
 
     'settings.open': 'Opciones',
     'settings.title': 'Opciones',
@@ -179,6 +181,8 @@ const I18N = {
     'footer.ref': 'Reference values',
     'footer.madeBy': 'Made by',
     'footer.desktop': 'Try the desktop app',
+    'footer.repo': 'View the code on GitHub',
+    'footer.projects': 'All my projects',
 
     'settings.open': 'Settings',
     'settings.title': 'Settings',
