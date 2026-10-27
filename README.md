@@ -1,3 +1,6 @@
+<img width="1920" height="914" alt="2bd2r7p213xh1" src="https://github.com/user-attachments/assets/426bc241-9936-467a-8ce9-c72dc40c2719" />
+
+
 # 💱 Convertidor BCV (web)
 
 **Español** | [English](README.en.md)
