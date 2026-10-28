@@ -17,16 +17,11 @@ const CURRENCIES = {
     history: `${API_BASE}/historicos/euros/oficial`,
     cacheKey: 'bcv-rate-cache-eur-v1',
   },
-  // Las demás monedas que publica el BCV solo vienen de BCV Today (sin histórico).
-  CNY: { code: 'CNY', symbol: '¥', current: null, history: null, cacheKey: 'bcv-rate-cache-cny-v1' },
-  TRY: { code: 'TRY', symbol: '₺', current: null, history: null, cacheKey: 'bcv-rate-cache-try-v1' },
-  RUB: { code: 'RUB', symbol: '₽', current: null, history: null, cacheKey: 'bcv-rate-cache-rub-v1' },
 };
-const BASE_CODES = ['USD', 'EUR'];
-const EXTRA_CODES = ['CNY', 'TRY', 'RUB'];
-// BCV Today: las 5 monedas oficiales del BCV en un solo JSON (fuente para CNY/TRY/RUB
-// y respaldo para USD/EUR). https://bcv.today/en/api/
-const BCV_TODAY_URL = 'https://bcv.today/api/v1/rate.json';
+const CODES = Object.keys(CURRENCIES);
+// rates.json lo genera una GitHub Action leyendo bcv.org.ve cada 30 min (scripts/update-rates.mjs).
+// Trae la tasa con su "fecha valor", así que suele adelantarse a DolarApi por la tarde.
+const BCV_FILE_URL = 'rates.json';
 const SKINS = ['fluid', 'hologram', 'emerald'];
 const SKIN_THEME_COLORS = { fluid: '#04101f', hologram: '#0e0d12', emerald: '#0a0c0c' };
 const SETTINGS_KEY = 'bcv-settings';
@@ -48,7 +43,6 @@ const settings = {
   randomSkin: savedSettings.randomSkin === true, // la elección aleatoria se hace en <head>
   simple: savedSettings.simple === true,         // solo el precio, sin gráfica ni variación
   verify: savedSettings.verify === true,         // botón a la página oficial del BCV
-  extraCurrencies: savedSettings.extraCurrencies === true, // yuan, lira turca y rublo
 };
 const saveSettings = () => writeStorage(SETTINGS_KEY, settings);
 
@@ -75,13 +69,10 @@ const store = Object.fromEntries(Object.keys(CURRENCIES).map((code) => (
   [code, { rate: 0, updatedAt: null, source: 'loading', history: [] }]
 )));
 
-// Monedas disponibles según las opciones.
-const activeCodes = () => (settings.extraCurrencies ? [...BASE_CODES, ...EXTRA_CODES] : BASE_CODES);
-
 const savedCurrency = readStorage(CURRENCY_PREF_KEY);
 
 const state = {
-  currency: activeCodes().includes(savedCurrency) ? savedCurrency : 'USD',
+  currency: CODES.includes(savedCurrency) ? savedCurrency : 'USD',
   range: 30,
   mode: 'fx-ves', // fx-ves (divisa → Bs) | ves-fx (Bs → divisa)
   displayedRate: 0,
@@ -110,9 +101,7 @@ const el = {
   settingsBtn: $('#settings-btn'), settingsPanel: $('#settings-panel'), settingsClose: $('#settings-close'),
   langToggle: $('#lang-toggle'), skinGrid: $('#skin-grid'), autoSkin: $('#auto-skin'),
   randomSkin: $('#random-skin'), simpleView: $('#simple-view'),
-  verifyToggle: $('#verify-toggle'), extraToggle: $('#extra-toggle'),
-  currencyMenu: $('#currency-menu'), currencyMenuBtn: $('#currency-menu-btn'),
-  currencyMenuCode: $('#currency-menu-code'), currencyList: $('#currency-list'),
+  verifyToggle: $('#verify-toggle'),
   themeColor: document.querySelector('meta[name="theme-color"]'),
   toast: $('#toast'),
 };
@@ -208,30 +197,35 @@ function animateNumber(node, from, to) {
 
 /* ---------------- Datos ---------------- */
 
-// Una sola petición a BCV Today sirve para todas las monedas durante un minuto.
-let bcvToday = { at: 0, promise: null };
-function fetchBcvToday() {
-  if (!bcvToday.promise || Date.now() - bcvToday.at > 60 * 1000) {
-    bcvToday = { at: Date.now(), promise: fetchJSON(BCV_TODAY_URL) };
-    bcvToday.promise.catch(() => { bcvToday.at = 0; });
+// Una sola petición a rates.json sirve para ambas monedas durante un minuto.
+let bcvFile = { at: 0, promise: null };
+function fetchBcvFile() {
+  if (!bcvFile.promise || Date.now() - bcvFile.at > 60 * 1000) {
+    bcvFile = { at: Date.now(), promise: fetchJSON(BCV_FILE_URL) };
+    bcvFile.promise.catch(() => { bcvFile.at = 0; });
   }
-  return bcvToday.promise;
+  return bcvFile.promise;
 }
 
-function pickBcvToday(data, code) {
-  if (!data || typeof data !== 'object') return 0;
-  const entry = data[code] ?? data[code.toLowerCase()] ?? data.rates?.[code] ?? data.rates?.[code.toLowerCase()];
-  const v = toNumber(entry && typeof entry === 'object' ? (entry.value ?? entry.rate ?? entry.price) : entry);
-  return Number.isFinite(v) && v > 0 ? v : 0;
+async function rateFromBcvFile(code) {
+  const res = await fetchBcvFile();
+  const rate = toNumber(res?.[code]);
+  const date = parseDate(res?.fechaValor);
+  if (!(rate > 0) || !date) throw new Error('rates.json no trae esta moneda');
+  return { rate, date };
 }
+
+async function rateFromDolarApi(code) {
+  const res = await fetchJSON(CURRENCIES[code].current);
+  const rate = toRate(res);
+  if (!rate) throw new Error('La respuesta no trae una tasa válida');
+  return { rate, date: parseDate(res.fechaActualizacion) || new Date() };
+}
+
+const dayKey = (d) => d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate();
 
 async function loadHistory(code) {
   const data = store[code];
-  if (!CURRENCIES[code].history) {
-    data.history = [];
-    if (code === state.currency) renderChart();
-    return data.history;
-  }
   try {
     const list = await fetchJSON(CURRENCIES[code].history, 10000);
     data.history = (Array.isArray(list) ? list : [])
@@ -247,29 +241,14 @@ async function loadHistory(code) {
 }
 
 async function loadRate(code, historyPromise) {
-  if (CURRENCIES[code].current) {
-    try {
-      const res = await fetchJSON(CURRENCIES[code].current);
-      const rate = toRate(res);
-      if (!rate) throw new Error('La respuesta no trae una tasa válida');
-      setRate(code, rate, parseDate(res.fechaActualizacion) || new Date(), 'live');
-      return;
-    } catch (err) {
-      console.warn(`[BCV] tasa ${code} no disponible en DolarApi:`, err);
-    }
-  }
-
-  // BCV Today: fuente principal de CNY/TRY/RUB y respaldo de USD/EUR.
-  try {
-    const res = await fetchBcvToday();
-    const rate = pickBcvToday(res, code);
-    if (!rate) throw new Error('La respuesta no trae esta moneda');
-    const date = parseDate(res.effective_date) || parseDate(res.date) || parseDate(res.updated_at) || new Date();
-    setRate(code, rate, date, 'live');
-    return;
-  } catch (err) {
-    console.warn(`[BCV] tasa ${code} no disponible en BCV Today:`, err);
-  }
+  // Se consultan las dos fuentes a la vez. Gana rates.json (leído del BCV) salvo que
+  // DolarApi traiga una tasa de un día posterior (por ejemplo, si la Action dejó de correr).
+  const [file, api] = await Promise.allSettled([rateFromBcvFile(code), rateFromDolarApi(code)]);
+  if (file.status === 'rejected') console.warn(`[BCV] tasa ${code} no disponible en rates.json:`, file.reason);
+  if (api.status === 'rejected') console.warn(`[BCV] tasa ${code} no disponible en DolarApi:`, api.reason);
+  const f = file.value, a = api.value;
+  const best = f && a ? (dayKey(a.date) > dayKey(f.date) ? a : f) : f || a;
+  if (best) { setRate(code, best.rate, best.date, 'live'); return; }
 
   // Respaldo: último valor del histórico.
   const history = await historyPromise;
@@ -461,8 +440,6 @@ function renderCurrencyLabels() {
   el.currencyBtn.setAttribute('aria-label', t(`currency.aria.${other}`));
   el.currencyBtn.dataset.target = other;
   el.headerSub.textContent = t('header.sub', { code });
-  el.currencyMenuCode.textContent = code;
-  renderCurrencyList();
   el.ratePer.textContent = t('rate.per', { code });
   el.modeFx.textContent = `${code} → Bs`;
   el.modeVes.textContent = `Bs → ${code}`;
@@ -476,41 +453,13 @@ function renderCurrencyLabels() {
 }
 
 function setCurrency(code, { silent = false } = {}) {
-  if (code === state.currency || !activeCodes().includes(code)) return;
+  if (code === state.currency || !CODES.includes(code)) return;
   state.currency = code;
   writeStorage(CURRENCY_PREF_KEY, code);
   renderCurrencyLabels();
   renderRateView();
   if (cur().source === 'none') refresh(code);
   if (!silent) toast(t('currency.toast', { name: t(`currency.name.${code}`) }));
-}
-
-// Menú desplegable con todas las monedas oficiales del BCV.
-function renderCurrencyList() {
-  el.currencyList.replaceChildren(...activeCodes().map((code) => {
-    const li = document.createElement('li');
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.setAttribute('role', 'option');
-    b.setAttribute('aria-selected', String(code === state.currency));
-    b.dataset.code = code;
-    b.innerHTML = `<span class="currency-list__code">${CURRENCIES[code].symbol} ${code}</span><span class="currency-list__name">${t(`currency.name.${code}`)}</span>`;
-    li.append(b);
-    return li;
-  }));
-}
-
-function openCurrencyMenu() {
-  el.currencyList.hidden = false;
-  el.currencyMenuBtn.setAttribute('aria-expanded', 'true');
-  el.currencyList.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true });
-}
-
-function closeCurrencyMenu({ restoreFocus = false } = {}) {
-  if (el.currencyList.hidden) return;
-  el.currencyList.hidden = true;
-  el.currencyMenuBtn.setAttribute('aria-expanded', 'false');
-  if (restoreFocus) el.currencyMenuBtn.focus();
 }
 
 /* ---------------- Conversor ---------------- */
@@ -721,30 +670,17 @@ function setSimple(on) {
   if (!on) renderChart(); // al volver a mostrarla, la gráfica se redibuja con su animación
 }
 
-/* ---------------- Verificar y otras monedas ---------------- */
+/* ---------------- Verificar ---------------- */
 
 function applyFlags() {
   const root = document.documentElement.dataset;
   if (settings.verify) root.verify = 'true'; else delete root.verify;
-  if (settings.extraCurrencies) root.extra = 'true'; else delete root.extra;
 }
 
 function setVerify(on) {
   settings.verify = on;
   saveSettings();
   applyFlags();
-  renderSettingsState();
-}
-
-function setExtraCurrencies(on) {
-  settings.extraCurrencies = on;
-  saveSettings();
-  applyFlags();
-  // Si se ocultan y la moneda activa era una de ellas, volver al dólar.
-  if (!on && EXTRA_CODES.includes(state.currency)) setCurrency('USD');
-  if (on) EXTRA_CODES.forEach((c) => { if (store[c].source === 'loading' || store[c].source === 'none') refresh(c); });
-  closeCurrencyMenu();
-  renderCurrencyLabels();
   renderSettingsState();
 }
 
@@ -758,7 +694,6 @@ function renderSettingsState() {
   el.randomSkin.checked = settings.randomSkin;
   el.simpleView.checked = settings.simple;
   el.verifyToggle.checked = settings.verify;
-  el.extraToggle.checked = settings.extraCurrencies;
 }
 
 function positionSettings() {
@@ -855,31 +790,18 @@ function bindEvents() {
   el.randomSkin.addEventListener('change', () => setRandomSkin(el.randomSkin.checked));
   el.simpleView.addEventListener('change', () => setSimple(el.simpleView.checked));
   el.verifyToggle.addEventListener('change', () => setVerify(el.verifyToggle.checked));
-  el.extraToggle.addEventListener('change', () => setExtraCurrencies(el.extraToggle.checked));
-
-  // Menú de monedas
-  el.currencyMenuBtn.addEventListener('click', () => (el.currencyList.hidden ? openCurrencyMenu() : closeCurrencyMenu()));
-  el.currencyList.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-code]');
-    if (!b) return;
-    setCurrency(b.dataset.code);
-    closeCurrencyMenu({ restoreFocus: true });
-  });
 
   document.addEventListener('pointerdown', (e) => {
     if (!el.settingsPanel.hidden && !el.settingsPanel.contains(e.target) && !el.settingsBtn.contains(e.target)) closeSettings();
-    if (!el.currencyList.hidden && !el.currencyMenu.contains(e.target)) closeCurrencyMenu();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (!el.currencyList.hidden) closeCurrencyMenu({ restoreFocus: true });
-    else closeSettings({ restoreFocus: true });
+    if (e.key === 'Escape') closeSettings({ restoreFocus: true });
   });
   window.addEventListener('resize', () => { if (!el.settingsPanel.hidden) positionSettings(); });
   window.addEventListener('scroll', () => { if (!el.settingsPanel.hidden) positionSettings(); }, { passive: true });
 
   // Mantener las tasas al día.
-  setInterval(() => { if (!document.hidden) activeCodes().forEach((c) => refresh(c)); }, REFRESH_MS);
+  setInterval(() => { if (!document.hidden) CODES.forEach((c) => refresh(c)); }, REFRESH_MS);
   setInterval(renderUpdated, 60 * 1000);
   document.addEventListener('visibilitychange', () => {
     const { updatedAt } = cur();
@@ -912,7 +834,7 @@ async function init() {
   splash.finish();
 
   // Precargar las demás monedas para que el cambio sea instantáneo.
-  activeCodes().filter((c) => c !== active).forEach((c) => refresh(c));
+  CODES.filter((c) => c !== active).forEach((c) => refresh(c));
 }
 
 init();

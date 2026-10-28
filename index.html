@@ -22,7 +22,6 @@
       if (skins.includes(s.skin)) document.documentElement.dataset.skin = s.skin;
       if (s.simple) document.documentElement.dataset.simple = 'true';
       if (s.verify) document.documentElement.dataset.verify = 'true';
-      if (s.extraCurrencies) document.documentElement.dataset.extra = 'true';
       if (s.lang === 'en') document.documentElement.lang = 'en';
     } catch (e) {}
   </script>
@@ -107,13 +106,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
           <span class="hidden sm:inline" data-i18n="verify.label">Verificar</span>
         </a>
-        <div class="currency-menu" id="currency-menu">
-          <button type="button" id="currency-menu-btn" class="menu-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="currency-list" data-i18n-aria="currencyMenu.label" aria-label="Elegir moneda">
-            <span id="currency-menu-code">USD</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-          <ul id="currency-list" class="glass currency-list" role="listbox" data-i18n-aria="currencyMenu.label" aria-label="Elegir moneda" hidden></ul>
-        </div>
         <button type="button" id="currency-btn" class="currency-btn" data-target="EUR" aria-label="Cambiar a euro">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
           <span><span class="hidden sm:inline" data-i18n="currency.switchTo">Cambiar a </span><span id="currency-btn-label">EURO</span></span>
@@ -247,7 +239,7 @@
     </main>
 
     <footer class="site-footer mt-auto flex flex-wrap items-center justify-center gap-y-1 text-center text-[10px] text-faint reveal" style="--d:.32s">
-      <span class="footer-item"><span data-i18n="footer.source">Tasa oficial del BCV vía</span> <a href="https://dolarapi.com/docs/venezuela/" target="_blank" rel="noopener">DolarApi</a></span>
+      <span class="footer-item"><span data-i18n="footer.source">Tasa oficial del BCV vía</span> <a href="https://www.bcv.org.ve/" target="_blank" rel="noopener">bcv.org.ve</a></span>
       <span class="footer-item" data-i18n="footer.ref">Valores referenciales</span>
       <span class="footer-item"><span data-i18n="footer.madeBy">Hecho por</span> <a href="https://grevaleart.com" target="_blank" rel="noopener">Grecia V.</a></span>
       <span class="footer-item"><a href="https://github.com/GVPV12/usdtoves" target="_blank" rel="noopener" data-i18n="footer.desktop">Prueba la app de escritorio</a></span>
@@ -317,14 +309,6 @@
         <span class="mt-0.5 block text-[11px] text-muted" data-i18n="settings.verifyHint">Enlace a la página oficial del BCV para comparar la tasa</span>
       </span>
       <input type="checkbox" id="verify-toggle" class="switch" role="switch">
-    </label>
-
-    <label class="switch-row" for="extra-toggle">
-      <span class="min-w-0">
-        <span class="block text-[13px]" data-i18n="settings.extra">Otras monedas oficiales BCV</span>
-        <span class="mt-0.5 block text-[11px] text-muted" data-i18n="settings.extraHint">Agrega yuan, lira turca y rublo</span>
-      </span>
-      <input type="checkbox" id="extra-toggle" class="switch" role="switch">
     </label>
   </div>
 

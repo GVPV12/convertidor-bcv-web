@@ -440,14 +440,11 @@ button { cursor: pointer; }
 .currency-btn:hover svg { transform: rotate(180deg); }
 .currency-btn:active { transform: scale(.97); }
 
-/* Botón "Verificar" (enlace al BCV) y menú de monedas: ocultos hasta activarlos en Opciones */
-.verify-btn,
-.currency-menu { display: none; }
+/* Botón "Verificar" (enlace al BCV): oculto hasta activarlo en Opciones */
+.verify-btn { display: none; }
 [data-verify="true"] .verify-btn { display: inline-flex; }
-[data-extra="true"] .currency-menu { display: block; }
 
-.verify-btn,
-.menu-btn {
+.verify-btn {
   align-items: center;
   justify-content: center;
   gap: .35rem;
@@ -464,21 +461,17 @@ button { cursor: pointer; }
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .08);
   transition: background .2s, border-color .2s, box-shadow .2s, transform .2s var(--ease-out);
 }
-.menu-btn { display: inline-flex; padding: 0 .55rem 0 .7rem; }
 @media (min-width: 640px) {
   .verify-btn { padding: 0 .8rem 0 .65rem; }
 }
-.verify-btn:hover,
-.menu-btn:hover,
-.menu-btn[aria-expanded="true"] {
+.verify-btn:hover {
   color: var(--text);
   background: rgb(var(--c-tint) / .17);
   border-color: rgb(var(--c-pearl) / .4);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), 0 0 22px -6px rgb(var(--c-cyan) / .7);
 }
-.verify-btn:active, .menu-btn:active { transform: scale(.96); }
-.verify-btn svg,
-.menu-btn svg {
+.verify-btn:active { transform: scale(.96); }
+.verify-btn svg {
   width: .95rem;
   height: .95rem;
   fill: none;
@@ -487,40 +480,6 @@ button { cursor: pointer; }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.menu-btn svg { width: .8rem; height: .8rem; stroke: var(--muted); transition: transform .3s var(--ease-spring); }
-.menu-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-
-.currency-menu { position: relative; }
-.currency-list {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 40;
-  width: 13.5rem;
-  max-width: calc(100vw - 2rem);
-  padding: .35rem;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgb(var(--c-surface) / .2), rgb(var(--c-deep) / .95));
-  animation: menu-in .2s var(--ease-out);
-}
-@keyframes menu-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
-.currency-list button {
-  display: flex;
-  width: 100%;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: .75rem;
-  padding: .55rem .7rem;
-  border-radius: 10px;
-  text-align: left;
-  color: var(--muted);
-  transition: background .15s, color .15s;
-}
-.currency-list button:hover { color: var(--text); background: rgb(var(--c-tint) / .1); }
-.currency-list button[aria-selected="true"] { color: #fff; background: rgb(var(--c-cyan) / .18); }
-.currency-list__code { font-family: "Sora", sans-serif; font-size: .8rem; font-weight: 600; }
-.currency-list__name { font-size: .72rem; }
-
 /* Selector de periodo */
 .range {
   display: inline-flex;

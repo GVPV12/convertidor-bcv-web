@@ -1,0 +1,31 @@
+name: Actualizar tasa BCV
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # cada 30 minutos (GitHub puede retrasarlo unos minutos)
+  workflow_dispatch:       # botón "Run workflow" para ejecutarlo a mano
+
+permissions:
+  contents: write
+
+concurrency: update-rates
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/update-rates.mjs
+      # Solo se hace commit si la tasa cambió; Netlify publica ese commit solo.
+      - name: Guardar rates.json
+        run: |
+          git add rates.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898247+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Actualiza tasa BCV"
+          git push

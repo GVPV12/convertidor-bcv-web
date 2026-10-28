@@ -18,7 +18,6 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 - 🎨 3 skins: **Fluido**, **Holograma** y **Esmeralda**, con opción de rotarlas automáticamente o elegir una al azar al iniciar
 - 👁️ Vista simple: solo el precio, sin gráfica ni porcentaje
 - ✅ Botón opcional **Verificar** que lleva a la página oficial del BCV
-- 🌍 Opción para mostrar las demás monedas oficiales del BCV: **yuan, lira turca y rublo**
 - 💾 Todas las opciones se recuerdan al volver a la página
 - 📴 Si no hay conexión, muestra la última tasa guardada
 - 📱 100% responsivo: se adapta a cualquier dispositivo (teléfono, tablet, laptop y monitores grandes)
@@ -34,9 +33,8 @@ También se puede publicar tal cual con **GitHub Pages** (Settings → Pages →
 
 - HTML, CSS y JavaScript sin frameworks de compilación
 - [Tailwind CSS](https://tailwindcss.com/) (CDN) para el layout
-- [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) para las tasas oficiales del BCV (dólar y euro, actual e histórico)
-- [BCV Today](https://bcv.today/en/api/) para yuan, lira turca y rublo (y como respaldo de dólar y euro)
-
+- Tasa del día leída directamente de [bcv.org.ve](https://www.bcv.org.ve/) cada 30 minutos por una GitHub Action (`scripts/update-rates.mjs` → `rates.json`)
+- [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) para el histórico de la gráfica y como respaldo de la tasa
 ## Archivos
 
 | Archivo | Contenido |

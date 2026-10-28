@@ -15,7 +15,6 @@ Converts **US dollars (USD)** and **euros (EUR)** to **Venezuelan bolívars (VES
 - 🎨 3 skins: **Fluid**, **Hologram** and **Emerald**, with options to rotate them automatically or pick a random one on start
 - 👁️ Simple view: price only, no chart or percentage
 - ✅ Optional **Verify** button linking to the official BCV website
-- 🌍 Option to show the other official BCV currencies: **Chinese yuan, Turkish lira and Russian ruble**
 - 💾 All settings are remembered when you come back
 - 📴 When offline, it shows the last saved rate
 - 📱 100% responsive: works on any device (phone, tablet, laptop and large monitors)
@@ -31,9 +30,8 @@ It can also be published as-is with **GitHub Pages** (Settings → Pages → bra
 
 - Plain HTML, CSS and JavaScript, no build tools
 - [Tailwind CSS](https://tailwindcss.com/) (CDN) for layout
-- [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) for the official BCV rates (dollar and euro, current and historical)
-- [BCV Today](https://bcv.today/en/api/) for yuan, lira and ruble (and as a fallback for dollar and euro)
-
+- Today's rate read straight from [bcv.org.ve](https://www.bcv.org.ve/) every 30 minutes by a GitHub Action (`scripts/update-rates.mjs` → `rates.json`)
+- [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) for the chart history and as a fallback rate
 ## Files
 
 | File | Contents |
