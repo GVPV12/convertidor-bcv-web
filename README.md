@@ -24,17 +24,35 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 
 ## Uso
 
-No necesita instalación ni compilación: abre `index.html` en el navegador.
-También se puede publicar tal cual con **GitHub Pages** (Settings → Pages → rama `main`, carpeta `/ (root)`).
+🌐 **En línea:** [usdbcv.netlify.app](https://usdbcv.netlify.app/)
+
+No necesita instalación ni compilación: también puedes abrir `index.html` en el navegador.
+Está publicada en **Netlify**, que vuelve a publicar la web con cada commit en `main`.
 
 > 🔖 **Tip:** guárdala en tus marcadores (o en la pantalla de inicio de tu teléfono) y ábrela cada vez que necesites convertir. Funciona igual de bien en cualquier dispositivo.
+
+## Fuentes de datos
+
+| Dato | Fuente |
+|---|---|
+| Tasa de hoy (USD y EUR) | Leída directamente de la portada de [bcv.org.ve](https://www.bcv.org.ve/), con su **fecha valor** |
+| Histórico de la gráfica | [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) |
+| Respaldo de la tasa | DolarApi, y si no hay conexión, la última tasa guardada en el navegador |
+
+Cómo se mantiene al día:
+
+1. Cada 30 minutos, la GitHub Action [`update-rates.yml`](.github/workflows/update-rates.yml) ejecuta `scripts/update-rates.mjs`, que lee la web del BCV.
+2. Si la tasa o la fecha valor cambiaron, guarda `rates.json` y hace un commit; Netlify publica ese cambio solo.
+3. La web lee `rates.json` y DolarApi a la vez y muestra la tasa más reciente. Así aparece la tasa nueva en cuanto el BCV la publica por la tarde.
+
+El script rechaza cualquier tasa que salte más de un 25 % respecto a la anterior. La Action también se puede ejecutar a mano desde la pestaña **Actions** → **Actualizar tasa BCV** → **Run workflow**.
 
 ## Tecnología
 
 - HTML, CSS y JavaScript sin frameworks de compilación
 - [Tailwind CSS](https://tailwindcss.com/) (CDN) para el layout
-- Tasa del día leída directamente de [bcv.org.ve](https://www.bcv.org.ve/) cada 30 minutos por una GitHub Action (`scripts/update-rates.mjs` → `rates.json`)
-- [DolarApi Venezuela](https://dolarapi.com/docs/venezuela/) para el histórico de la gráfica y como respaldo de la tasa
+- GitHub Actions + Node 20 (sin dependencias) para leer la tasa del BCV
+
 ## Archivos
 
 | Archivo | Contenido |
@@ -44,3 +62,6 @@ También se puede publicar tal cual con **GitHub Pages** (Settings → Pages →
 | `app.js` | Lógica: tasas, conversión, gráfica, opciones |
 | `i18n.js` | Textos en español e inglés |
 | `quotes.js` | Frases motivacionales |
+| `rates.json` | Última tasa del BCV (la genera la Action, no se edita a mano) |
+| `scripts/update-rates.mjs` | Lee la tasa de bcv.org.ve y actualiza `rates.json` |
+| `.github/workflows/update-rates.yml` | Ejecuta el script cada 30 minutos |
