@@ -1,5 +1,4 @@
 <img width="1920" height="914" alt="2bd2r7p213xh1" src="https://github.com/user-attachments/assets/426bc241-9936-467a-8ce9-c72dc40c2719" />
-<img width="1444" height="1080" alt="Proyecto nuevo" src="https://github.com/user-attachments/assets/f4b565c3-cdfa-4b3a-bdf5-9aa9fbbf238b" />
 
 
 # 💱 Convertidor BCV (web)
@@ -22,6 +21,9 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 - 💾 Todas las opciones se recuerdan al volver a la página
 - 📴 Si no hay conexión, muestra la última tasa guardada
 - 📱 100% responsivo: se adapta a cualquier dispositivo (teléfono, tablet, laptop y monitores grandes)
+
+<img width="1444" height="1080" alt="Proyecto nuevo" src="https://github.com/user-attachments/assets/f4b565c3-cdfa-4b3a-bdf5-9aa9fbbf238b" />
+
 
 ## Uso
 
