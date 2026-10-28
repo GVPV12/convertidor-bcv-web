@@ -22,6 +22,8 @@ Convierte **dólares (USD)** y **euros (EUR)** a **bolívares (VES)** y vicevers
 - 📴 Si no hay conexión, muestra la última tasa guardada
 - 📱 100% responsivo: se adapta a cualquier dispositivo (teléfono, tablet, laptop y monitores grandes)
 
+## Responsividad
+
 <img width="1444" height="1080" alt="Proyecto nuevo" src="https://github.com/user-attachments/assets/f4b565c3-cdfa-4b3a-bdf5-9aa9fbbf238b" />
 
 
