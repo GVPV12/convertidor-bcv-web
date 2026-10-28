@@ -69,7 +69,6 @@ const I18N = {
     'quote.anotherAria': 'Mostrar otra frase',
 
     'footer.source': 'Tasa oficial del BCV vía',
-    'footer.ref': 'Valores referenciales',
     'footer.madeBy': 'Hecho por',
     'footer.desktop': 'Prueba la app de escritorio',
     'footer.repo': 'Ver el código en GitHub',
@@ -162,7 +161,6 @@ const I18N = {
     'quote.anotherAria': 'Show another quote',
 
     'footer.source': 'Official BCV rate via',
-    'footer.ref': 'Reference values',
     'footer.madeBy': 'Made by',
     'footer.desktop': 'Try the desktop app',
     'footer.repo': 'View the code on GitHub',

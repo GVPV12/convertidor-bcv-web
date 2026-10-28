@@ -41,5 +41,3 @@ It can also be published as-is with **GitHub Pages** (Settings → Pages → bra
 | `app.js` | Logic: rates, conversion, chart, settings |
 | `i18n.js` | Spanish and English texts |
 | `quotes.js` | Motivational quotes |
-
-> All values are for reference only. The rate comes from the BCV via DolarApi.

@@ -44,5 +44,3 @@ También se puede publicar tal cual con **GitHub Pages** (Settings → Pages →
 | `app.js` | Lógica: tasas, conversión, gráfica, opciones |
 | `i18n.js` | Textos en español e inglés |
 | `quotes.js` | Frases motivacionales |
-
-> Los valores son referenciales. La tasa proviene del BCV a través de DolarApi.
