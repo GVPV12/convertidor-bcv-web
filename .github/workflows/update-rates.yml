@@ -22,6 +22,7 @@ jobs:
       - run: node scripts/update-rates.mjs
       # Solo se hace commit si la tasa cambió; Netlify publica ese commit solo.
       # El pull --rebase evita que el push falle si alguien subió algo mientras corría.
+      # Si aun así no se puede subir, solo se avisa: la siguiente ejecución lo intentará de nuevo.
       - name: Guardar rates.json
         run: |
           git add rates.json
@@ -29,5 +30,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898247+github-actions[bot]@users.noreply.github.com"
           git commit -m "Actualiza tasa BCV"
-          git pull --rebase
-          git push
+          git pull --rebase && git push || echo "::warning::No se pudo subir rates.json; se reintenta en la próxima ejecución."
