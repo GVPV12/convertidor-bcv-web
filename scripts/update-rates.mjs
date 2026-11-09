@@ -47,29 +47,49 @@ function pickRate(html, id) {
   return Number(m[1].replace(/\./g, '').replace(',', '.'));
 }
 
+// "Fecha Valor: <span property="dc:date" … content="2026-11-10T00:00:00-04:00" …>".
+// Se ancla al texto y no al orden de los atributos, que el BCV ya cambió una vez.
 function pickDate(html) {
-  const m = /date-display-single[^>]*content="(\d{4}-\d{2}-\d{2})/.exec(html);
+  const m = /Fecha Valor:[\s\S]{0,300}?content="(\d{4}-\d{2}-\d{2})/.exec(html);
   return m ? m[1] : null;
 }
 
 const round = (n) => Math.round(n * 1e4) / 1e4;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const html = await fetchBcv();
+// Si el BCV no responde no es un error de la Action: la web usa DolarApi mientras tanto.
+// Se avisa con ::warning:: (visible en Actions, sin correo) y se sale bien.
+// En cambio, si responde pero no se entiende el HTML, sí falla: hay que actualizar el script.
+function skip(msg) {
+  console.log(`::warning::${msg}`);
+  process.exit(0);
+}
+
+let html;
+for (let attempt = 1; attempt <= 3 && !html; attempt++) {
+  try {
+    html = await fetchBcv();
+  } catch (err) {
+    console.warn(`Intento ${attempt}/3 fallido: ${err.code || ''} ${err.message}`);
+    if (attempt < 3) await sleep(15000);
+  }
+}
+if (!html) skip('La web del BCV no respondió tras 3 intentos; rates.json no cambia.');
+
 const next = {
   fechaValor: pickDate(html),
   USD: round(pickRate(html, 'dolar')),
   EUR: round(pickRate(html, 'euro')),
 };
-
 if (!next.fechaValor || !(next.USD > 0) || !(next.EUR > 0)) {
-  throw new Error(`No se pudo leer la tasa de la web del BCV: ${JSON.stringify(next)}`);
+  throw new Error(`No se pudo leer la tasa de la web del BCV (¿cambió su HTML?): ${JSON.stringify(next)}`);
 }
 
 let prev = null;
 try { prev = JSON.parse(await readFile(OUT, 'utf8')); } catch { /* primera ejecución */ }
 
 if (prev?.USD > 0 && Math.abs(next.USD - prev.USD) / prev.USD > MAX_JUMP) {
-  throw new Error(`Salto sospechoso en USD: ${prev.USD} → ${next.USD}. No se guarda.`);
+  skip(`Salto sospechoso en USD: ${prev.USD} → ${next.USD}. No se guarda.`);
 }
 
 if (prev && prev.fechaValor === next.fechaValor && prev.USD === next.USD && prev.EUR === next.EUR) {

@@ -15,12 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - run: node scripts/update-rates.mjs
       # Solo se hace commit si la tasa cambió; Netlify publica ese commit solo.
+      # El pull --rebase evita que el push falle si alguien subió algo mientras corría.
       - name: Guardar rates.json
         run: |
           git add rates.json
@@ -28,4 +29,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898247+github-actions[bot]@users.noreply.github.com"
           git commit -m "Actualiza tasa BCV"
+          git pull --rebase
           git push
