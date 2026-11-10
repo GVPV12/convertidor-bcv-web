@@ -422,7 +422,13 @@ function onChartPointer(e) {
   const fx = c.xs[i] / c.W;
   placeAt(el.chartHover, fx, c.ys[i] / c.H);
   placeAt(el.chartGuide, fx);
-  el.chartTooltip.innerHTML = `<strong>${fmt2.format(c.pts[i].value)} Bs</strong><span>${fmtDay.format(c.pts[i].date)}</span>`;
+  // Nodos en vez de innerHTML: los valores vienen de una API externa y así nunca
+  // se interpretan como HTML, aunque la respuesta trajera algo inesperado.
+  const strong = document.createElement('strong');
+  strong.textContent = `${fmt2.format(c.pts[i].value)} Bs`;
+  const span = document.createElement('span');
+  span.textContent = fmtDay.format(c.pts[i].date);
+  el.chartTooltip.replaceChildren(strong, span);
   // Mantener el tooltip dentro de la tarjeta.
   el.chartTooltip.hidden = false;
   const half = el.chartTooltip.offsetWidth / 2 / rect.width;
@@ -838,3 +844,10 @@ async function init() {
 }
 
 init();
+
+// PWA: registra el service worker (sw.js) después de cargar, para no competir con la tasa.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((err) => console.warn('[BCV] service worker:', err));
+  });
+}

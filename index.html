@@ -6,25 +6,17 @@
   <title>Convertidor BCV</title>
   <meta name="description" content="Convierte dólares y euros a bolívares (y viceversa) con la tasa oficial del BCV actualizada.">
   <meta name="theme-color" content="#04101f">
+  <!-- PWA: con esto el navegador ofrece "Instalar app" y se abre en su propia ventana. -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BCV">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23c4fff3'/%3E%3Cstop offset='1' stop-color='%2319c6e0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%2304101f'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='url(%23g)' stroke-width='2.2'/%3E%3Cpath d='M16 9.5v13M19.2 12.4h-4.4a2.1 2.1 0 0 0 0 4.2h2.4a2.1 2.1 0 0 1 0 4.2h-4.6' fill='none' stroke='url(%23g)' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
 
-  <!-- Aplica skin e idioma guardados antes de pintar, para evitar un parpadeo de colores. -->
-  <script>
-    try {
-      const skins = ['fluid', 'hologram', 'emerald'];
-      const s = JSON.parse(localStorage.getItem('bcv-settings') || '{}');
-      // "Skin aleatoria al iniciar": elige una distinta a la última y la guarda para app.js.
-      if (s.randomSkin) {
-        const pool = skins.filter((k) => k !== s.skin);
-        s.skin = pool[Math.floor(Math.random() * pool.length)];
-        localStorage.setItem('bcv-settings', JSON.stringify(s));
-      }
-      if (skins.includes(s.skin)) document.documentElement.dataset.skin = s.skin;
-      if (s.simple) document.documentElement.dataset.simple = 'true';
-      if (s.verify) document.documentElement.dataset.verify = 'true';
-      if (s.lang === 'en') document.documentElement.lang = 'en';
-    } catch (e) {}
-  </script>
+  <!-- Aplica skin e idioma guardados antes de pintar, para evitar un parpadeo de colores.
+       Es un archivo aparte (no inline) para que la CSP pueda bloquear scripts inyectados. -->
+  <script src="boot.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

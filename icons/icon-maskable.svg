@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Versión "maskable": fondo a sangre y el dibujo dentro del 80 % central, porque
+       Android recorta el ícono en círculo, gota o cuadrado según el teléfono. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4fff3"/>
+      <stop offset="1" stop-color="#19c6e0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#04101f"/>
+  <g transform="translate(256 256) scale(.72) translate(-256 -256)">
+    <circle cx="256" cy="256" r="160" fill="none" stroke="url(#g)" stroke-width="35"/>
+    <path d="M256 152v208M307 198.4h-70.4a33.6 33.6 0 0 0 0 67.2h38.4a33.6 33.6 0 0 1 0 67.2h-73.6" fill="none" stroke="url(#g)" stroke-width="32" stroke-linecap="round"/>
+  </g>
+</svg>

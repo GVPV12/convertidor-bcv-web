@@ -1,0 +1,32 @@
+# Cabeceras de seguridad que Netlify añade a cada respuesta.
+#
+# Content-Security-Policy: lista exacta de lo que la página puede cargar. Si alguien
+# lograra inyectar un <script> o la página intentara mandar datos a otro dominio,
+# el navegador lo bloquea.
+#   - script-src: solo los archivos propios y la versión fija de Tailwind en jsDelivr.
+#   - style-src 'unsafe-inline': Tailwind genera sus estilos en un <style> y el HTML
+#     usa atributos style="--d:..."; los estilos no ejecutan código.
+#   - connect-src: rates.json (propio) y DolarApi. Tailwind y las fuentes van aquí
+#     también porque el service worker (sw.js) las descarga para guardarlas offline.
+#   - frame-ancestors 'none': nadie puede meter la app en un iframe para engañar.
+# Permissions-Policy: la app no usa cámara, micrófono, ubicación ni nada parecido, y
+# así queda bloqueado aunque algún script lo intentara.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://ve.dolarapi.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# rates.json cambia cada vez que el BCV publica; nunca debe quedar una copia vieja en caché.
+/rates.json
+  Cache-Control: no-cache
+
+# El navegador tiene que poder ver enseguida un sw.js nuevo, o los teléfonos con la app
+# instalada se quedarían con la versión vieja.
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json

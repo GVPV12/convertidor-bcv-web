@@ -16,6 +16,7 @@ const DOLARAPI_URL = 'https://ve.dolarapi.com/v1/cotizaciones';
 const OUT = new URL('../rates.json', import.meta.url);
 const MAX_JUMP = 0.25;     // salto máximo aceptado respecto a la última tasa guardada
 const MAX_MISMATCH = 0.08; // diferencia máxima aceptada entre la lectura del BCV y DolarApi
+const MAX_BODY = 5 * 1024 * 1024;
 
 const round = (n) => Math.round(n * 1e4) / 1e4;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -31,7 +32,11 @@ function get(url, { insecure = false } = {}) {
       if (res.statusCode !== 200) { res.resume(); reject(new Error(`HTTP ${res.statusCode}`)); return; }
       res.setEncoding('utf8');
       let body = '';
-      res.on('data', (c) => { body += c; });
+      res.on('data', (c) => {
+        body += c;
+        // La portada del BCV pesa unos cientos de KB; algo mucho más grande no es la página esperada.
+        if (body.length > MAX_BODY) req.destroy(new Error('Respuesta demasiado grande'));
+      });
       res.on('end', () => resolve(body));
     });
     req.on('timeout', () => req.destroy(new Error('Tiempo de espera agotado')));
@@ -41,14 +46,15 @@ function get(url, { insecure = false } = {}) {
 
 // La web del BCV suele servir su certificado sin la cadena intermedia, y Node (a diferencia
 // del navegador) no la completa solo. Primero se intenta con verificación; si falla solo por
-// el certificado, se reintenta sin ella. Es una lectura de datos públicos (no se envía nada)
-// y el valor se valida contra DolarApi y contra la última tasa guardada.
+// el certificado, se reintenta sin ella. Es una lectura de datos públicos (no se envía nada).
+// Sin verificación, alguien en medio de la conexión podría servir una tasa falsa, así que una
+// lectura insegura queda marcada y solo se acepta si DolarApi la confirma (ver main()).
 async function getBcvOnce() {
   try {
-    return await get(BCV_URL);
+    return { html: await get(BCV_URL), insecure: false };
   } catch (err) {
     if (!/certificate|self.signed|UNABLE_TO|CERT_/i.test(`${err.code} ${err.message}`)) throw err;
-    return get(BCV_URL, { insecure: true });
+    return { html: await get(BCV_URL, { insecure: true }), insecure: true };
   }
 }
 
@@ -117,7 +123,7 @@ function pickDate(html, text) {
 }
 
 async function readBcv() {
-  const html = await fetchBcv();
+  const { html, insecure } = await fetchBcv();
   const text = toText(html);
   const r = {
     fechaValor: pickDate(html, text),
@@ -128,7 +134,7 @@ async function readBcv() {
   if (!r.fechaValor || !(r.USD > 0) || !(r.EUR > 0)) {
     throw new Error(`no se entendió el HTML (¿cambió?): ${JSON.stringify(r)}`);
   }
-  return r;
+  return { ...r, insecure };
 }
 
 /* ---------------- Respaldo: DolarApi ---------------- */
@@ -165,6 +171,13 @@ async function main() {
     warn(`La lectura del BCV (${next.USD} / ${next.EUR}) no cuadra con DolarApi (${ref.USD} / ${ref.EUR}); se descarta.`);
     next = null;
   }
+  // Una lectura sin verificar el certificado no se puede comprobar sola: sin DolarApi para
+  // contrastarla, no se guarda.
+  if (next?.insecure && !ref) {
+    warn('El BCV se leyó sin verificar el certificado y DolarApi no respondió para confirmarlo; no se guarda.');
+    next = null;
+  }
+  if (next) delete next.insecure;
   // DolarApi solo se usa si el BCV falló o si trae una fecha valor posterior.
   if (ref && (!next || ref.fechaValor > next.fechaValor)) {
     if (!next) warn('Se usa la tasa oficial de DolarApi como respaldo.');
