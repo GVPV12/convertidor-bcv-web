@@ -7,7 +7,7 @@
 //
 // Al cambiar cualquier archivo de la app, sube VERSION para que los teléfonos que ya la
 // tienen instalada descarguen la nueva.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const APP_CACHE = `bcv-app-${VERSION}`;
 const CDN_CACHE = `bcv-cdn-${VERSION}`;
 

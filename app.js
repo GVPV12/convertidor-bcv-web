@@ -173,11 +173,11 @@ function writeStorage(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* almacenamiento no disponible */ }
 }
 
-function toast(msg) {
+function toast(msg, ms = 1800) {
   el.toast.textContent = msg;
   el.toast.classList.add('is-visible');
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.toast.classList.remove('is-visible'), 1800);
+  toast.timer = setTimeout(() => el.toast.classList.remove('is-visible'), ms);
 }
 
 function animateNumber(node, from, to) {
@@ -844,6 +844,46 @@ async function init() {
 }
 
 init();
+
+/* ---------------- Instalar como app (PWA) ---------------- */
+
+// Chrome y Edge ya no muestran solos el aviso de instalación (en la computadora queda
+// escondido en un menú), así que la app ofrece su propio botón. Solo aparece cuando el
+// navegador avisa que se puede instalar. Safari en iPhone no tiene ese aviso: ahí el botón
+// explica cómo agregarla a inicio.
+const installBtn = $('#install-btn');
+let installPrompt = null;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+function setInstallable(on) {
+  if (on) document.documentElement.dataset.installable = 'true';
+  else delete document.documentElement.dataset.installable;
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  setInstallable(true);
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  setInstallable(false);
+  toast(t('install.done'), 3500);
+});
+if (isIOS && !isStandalone()) setInstallable(true);
+
+installBtn.addEventListener('click', async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    installPrompt = null;
+    if (outcome === 'accepted') setInstallable(false);
+  } else if (isIOS) {
+    toast(t('install.ios'), 6000);
+  }
+});
 
 // PWA: registra el service worker (sw.js) después de cargar, para no competir con la tasa.
 if ('serviceWorker' in navigator) {

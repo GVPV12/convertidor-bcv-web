@@ -23,6 +23,10 @@ const I18N = {
     'currency.name.EUR': 'Euro',
     'verify.label': 'Verificar',
     'verify.aria': 'Verificar en la página oficial del BCV (se abre en otra pestaña)',
+    'install.label': 'Instalar',
+    'install.aria': 'Instalar el convertidor como app',
+    'install.done': 'App instalada. Ya la tienes junto a tus otras apps.',
+    'install.ios': 'Toca Compartir (el cuadrado con la flecha) y luego "Agregar a inicio".',
 
     'status.live': 'BCV · En vivo',
     'status.cache': 'Sin conexión',
@@ -115,6 +119,10 @@ const I18N = {
     'currency.name.EUR': 'Euro',
     'verify.label': 'Verify',
     'verify.aria': 'Verify on the official BCV website (opens in a new tab)',
+    'install.label': 'Install',
+    'install.aria': 'Install the converter as an app',
+    'install.done': 'App installed. You\'ll find it next to your other apps.',
+    'install.ios': 'Tap Share (the square with the arrow), then "Add to Home Screen".',
 
     'status.live': 'BCV · Live',
     'status.cache': 'Offline',
