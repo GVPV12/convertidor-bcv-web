@@ -7,7 +7,7 @@
 //
 // Al cambiar cualquier archivo de la app, sube VERSION para que los teléfonos que ya la
 // tienen instalada descarguen la nueva.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const APP_CACHE = `bcv-app-${VERSION}`;
 const CDN_CACHE = `bcv-cdn-${VERSION}`;
 
@@ -22,6 +22,10 @@ const APP_FILES = [
   'manifest.webmanifest',
   'icons/icon.svg',
   'icons/icon-maskable.svg',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+  'icons/apple-touch-icon.png',
 ];
 
 // Terceros de los que depende el diseño (Tailwind y las fuentes). Solo estos se guardan.
